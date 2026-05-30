@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Tracker</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+</head>
+<body class="dark-mode">
+
+<!-- ══ SETUP OVERLAY ════════════════════════════════════════════ -->
+<div class="setup-overlay" id="setupOverlay">
+    <div class="setup-card">
+        <div class="setup-logo">📊</div>
+        <h1 class="setup-title">Welcome to Life Tracker!</h1>
+        <p class="setup-subtitle">Your personal health habit tracker. Let's get you set up — it only takes 30 seconds.</p>
+
+        <div class="setup-step">
+            <label class="setup-label">👋 What's your name?</label>
+            <input type="text" id="setupName" class="input setup-name-input" placeholder="e.g. Sarah" maxlength="40">
+        </div>
+
+        <div class="setup-step">
+            <label class="setup-label">✅ What would you like to track?</label>
+            <p class="setup-hint">You can change these later in the settings.</p>
+
+            <div class="setup-option" id="optPee">
+                <div class="setup-option-icon">💛</div>
+                <div class="setup-option-text">
+                    <strong>Pee (Urination)</strong>
+                    <span>Track visits and notice daily patterns</span>
+                </div>
+                <div class="setup-check active" id="chkPee">✓</div>
+            </div>
+
+            <div class="setup-option" id="optPoo">
+                <div class="setup-option-icon">🟤</div>
+                <div class="setup-option-text">
+                    <strong>Poo (Bowel movements)</strong>
+                    <span>Useful for digestive health awareness</span>
+                </div>
+                <div class="setup-check active" id="chkPoo">✓</div>
+            </div>
+
+            <div class="setup-option" id="optBrush">
+                <div class="setup-option-icon">🦷</div>
+                <div class="setup-option-text">
+                    <strong>Tooth brushing</strong>
+                    <span>Never forget if you brushed today</span>
+                </div>
+                <div class="setup-check active" id="chkBrush">✓</div>
+            </div>
+
+            <div class="setup-option" id="optFloss">
+                <div class="setup-option-icon">💧</div>
+                <div class="setup-option-text">
+                    <strong>Oral irrigator / flossing</strong>
+                    <span>Track water flosser or flossing habits</span>
+                </div>
+                <div class="setup-check active" id="chkFloss">✓</div>
+            </div>
+        </div>
+
+        <button class="setup-start-btn" id="setupStartBtn" onclick="completeSetup()">
+            Let's go! 🚀
+        </button>
+        <p class="setup-privacy">🔒 All data stays on your device. Nothing is ever uploaded.</p>
+    </div>
+</div>
+
+<!-- ══ MAIN APP ══════════════════════════════════════════════════ -->
+<div class="app-wrap" id="appWrap" style="display:none">
+<div class="container">
+
+    <div class="app-header">
+        <div class="greeting" id="greeting">Hello!</div>
+        <div class="header-actions">
+            <button class="icon-btn" id="settingsBtn" title="Settings" onclick="openSettings()">⚙️</button>
+            <button class="theme-toggle" id="themeToggle">☀️</button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" data-screen="log">Log</button>
+        <button class="tab"        data-screen="dental" id="dentalTab">Dental</button>
+        <button class="tab"        data-screen="stats">Stats</button>
+    </div>
+
+    <!-- ══ Screen: Log ══════════════════════════════════════════ -->
+    <div class="screen active" id="log-screen">
+        <div class="card" id="logCard">
+
+            <!-- Event type buttons -->
+            <div class="event-buttons" id="eventButtons">
+                <button class="event-btn pee-btn" data-event="pee" id="peeBtnWrap">💛 Pee</button>
+                <button class="event-btn poo-btn" data-event="poo" id="pooBtnWrap">🟤 Poo</button>
+            </div>
+
+            <div class="form-group">
+                <label>Date &amp; Time</label>
+                <input type="datetime-local" id="bathroomDateTime" class="input datetime-input">
+            </div>
+
+            <div class="form-group" id="locationGroup">
+                <label>Location <span class="optional-hint">(optional)</span></label>
+                <div class="button-group">
+                    <button class="toggle-btn" data-location="Home">🏠 Home</button>
+                    <button class="toggle-btn" data-location="Work">🏢 Work</button>
+                    <button class="toggle-btn" data-location="Other">📍 Other</button>
+                </div>
+            </div>
+
+            <button class="submit-btn" id="bathroomSubmit">Log Event</button>
+            <button class="cancel-btn hidden" id="bathroomCancel">Cancel Edit</button>
+        </div>
+    </div>
+
+    <!-- ══ Screen: Dental ═══════════════════════════════════════ -->
+    <div class="screen" id="dental-screen">
+        <div class="card">
+            <h2>🦷 Dental Care</h2>
+            <p class="screen-desc">Log each time you brush your teeth.</p>
+
+            <div class="form-group">
+                <label>Date &amp; Time</label>
+                <input type="datetime-local" id="dentalDateTime" class="input datetime-input">
+            </div>
+
+            <div class="form-group" id="flosserGroup">
+                <label>Also used oral irrigator or floss?</label>
+                <div class="button-group two-col">
+                    <button class="toggle-btn" data-flosser="0">No</button>
+                    <button class="toggle-btn" data-flosser="1">Yes 💧</button>
+                </div>
+            </div>
+
+            <button class="submit-btn" id="dentalSubmit">Log Brushing</button>
+            <button class="cancel-btn hidden" id="dentalCancel">Cancel Edit</button>
+        </div>
+    </div>
+
+    <!-- ══ Screen: Stats ════════════════════════════════════════ -->
+    <div class="screen" id="stats-screen">
+        <div class="card">
+            <h2>📊 Your Stats</h2>
+
+            <!-- Tracking summary chips -->
+            <div class="last-events-row" id="lastEventsRow">
+                <div class="last-event-chip" id="lastPeeChip">💛 —</div>
+                <div class="last-event-chip" id="lastPooChip">🟤 —</div>
+                <div class="last-event-chip" id="lastBrushChip">🦷 —</div>
+            </div>
+
+            <!-- Days tracked badge -->
+            <div class="days-tracked-badge" id="daysTrackedBadge"></div>
+
+            <!-- Streaks -->
+            <div class="stats-section" id="streaksSection">
+                <h3>🔥 Streaks &amp; Gaps</h3>
+                <div id="streaksContent"></div>
+            </div>
+
+            <!-- Averages -->
+            <div class="stats-section">
+                <h3>📈 Daily Averages</h3>
+                <div id="averagesTable"></div>
+            </div>
+
+            <!-- Charts -->
+            <div class="stats-section">
+                <h3>Timeline (last 90 days)</h3>
+                <div id="timelineChart"></div>
+            </div>
+
+            <div class="stats-section" id="locationSection">
+                <h3>Location Breakdown</h3>
+                <div id="locationChart"></div>
+            </div>
+
+            <div class="stats-section" id="dentalChartSection">
+                <h3>Dental Consistency</h3>
+                <div id="dentalChart"></div>
+            </div>
+
+            <!-- Recent events -->
+            <div class="stats-section" id="recentBathroomSection">
+                <h3>Recent Bathroom Logs</h3>
+                <div id="recentBathroomEvents"></div>
+                <button class="see-more-btn" onclick="window.location.href='/all-events?tab=bathroom'">See all →</button>
+            </div>
+
+            <div class="stats-section" id="recentDentalSection">
+                <h3>Recent Dental Logs</h3>
+                <div id="recentDentalEvents"></div>
+                <button class="see-more-btn" onclick="window.location.href='/all-events?tab=dental'">See all →</button>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /container -->
+</div><!-- /appWrap -->
+
+<!-- ══ SETTINGS MODAL ═══════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="settingsModal">
+    <div class="modal-card">
+        <h2>⚙️ Settings</h2>
+
+        <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" id="settingsName" class="input" maxlength="40">
+        </div>
+
+        <div class="form-group">
+            <label>What to Track</label>
+            <div class="settings-track-options">
+                <label class="settings-check-row"><input type="checkbox" id="sPee">   💛 Pee</label>
+                <label class="settings-check-row"><input type="checkbox" id="sPoo">   🟤 Poo</label>
+                <label class="settings-check-row"><input type="checkbox" id="sBrush"> 🦷 Tooth brushing</label>
+                <label class="settings-check-row"><input type="checkbox" id="sFloss"> 💧 Oral irrigator / floss</label>
+            </div>
+        </div>
+
+        <button class="submit-btn" onclick="saveSettings()">Save Settings</button>
+        <button class="cancel-btn" onclick="closeSettings()" style="margin-top:8px">Cancel</button>
+    </div>
+</div>
+
+<script>
+// Config injected server-side so first render is instant (no extra fetch)
+const APP_CONFIG = {{ config | tojson }};
+</script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
