@@ -294,7 +294,3 @@ A: Your data lives in the `data` folder, which is separate from Docker. As long 
 A: Yes — the app has an import API at `/api/import/bathroom` and `/api/import/dental` that accepts JSON. See `import_google_forms.py` for a reference import script.
 
 ---
-
-## 📄 Licence
-
-MIT — free to use, modify, and share.
