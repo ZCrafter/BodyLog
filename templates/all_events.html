@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Events — Life Tracker</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="dark-mode">
+<div class="container">
+    <div class="tabs">
+        <button class="tab" onclick="window.location.href='/?screen=stats'">← Stats</button>
+        <button class="theme-toggle" id="themeToggle">☀️</button>
+    </div>
+
+    <div class="card">
+        <h2>All Logged Events</h2>
+
+        <div class="all-events-tabs">
+            <button class="all-events-tab active" id="tabBathroom" onclick="switchTab('bathroom')">🚽 Bathroom</button>
+            <button class="all-events-tab"        id="tabDental"   onclick="switchTab('dental')">🦷 Dental</button>
+        </div>
+
+        <div id="bathroomSection">
+            <div id="bathroomList"></div>
+            <div id="bathroomLoadMore"></div>
+        </div>
+
+        <div id="dentalSection" style="display:none">
+            <div id="dentalList"></div>
+            <div id="dentalLoadMore"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const APP_CONFIG = {{ config | tojson }};
+let bathroomPage=1, dentalPage=1;
+let bathroomAll=[], dentalAll=[];
+let totalBathroom=0, totalDental=0;
+const PER_PAGE=50;
+let currentTab='bathroom';
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    document.getElementById('themeToggle').textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+});
+
+const urlTab = new URLSearchParams(window.location.search).get('tab');
+if (urlTab === 'dental') switchTab('dental');
+loadMore('bathroom');
+
+async function loadMore(type) {
+    const page = type==='bathroom' ? bathroomPage : dentalPage;
+    const res  = await fetch(`/api/all-events?page=${page}&per_page=${PER_PAGE}`);
+    const data = await res.json();
+    if (type==='bathroom') {
+        bathroomAll = [...bathroomAll, ...data.bathroom];
+        totalBathroom = data.total_bathroom; bathroomPage++;
+        renderBathroom(); renderLoadMore('bathroom', bathroomAll.length, totalBathroom);
+    } else {
+        dentalAll = [...dentalAll, ...data.dental];
+        totalDental = data.total_dental; dentalPage++;
+        renderDental(); renderLoadMore('dental', dentalAll.length, totalDental);
+    }
+}
+
+function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('tabBathroom').classList.toggle('active', tab==='bathroom');
+    document.getElementById('tabDental').classList.toggle('active',   tab==='dental');
+    document.getElementById('bathroomSection').style.display = tab==='bathroom' ? '' : 'none';
+    document.getElementById('dentalSection').style.display   = tab==='dental'   ? '' : 'none';
+    if (tab==='dental' && dentalAll.length===0) loadMore('dental');
+}
+
+const TYPE_LABEL = { pee:'💛 Pee', poo:'🟤 Poo' };
+
+function renderBathroom() {
+    const c = document.getElementById('bathroomList');
+    c.innerHTML = '';
+    if (!bathroomAll.length) { c.innerHTML='<p class="empty-msg">No bathroom events yet.</p>'; return; }
+    bathroomAll.forEach(ev => {
+        const d = document.createElement('div');
+        d.className = 'event-item';
+        let label = TYPE_LABEL[ev.event_type] || ev.event_type;
+        if (ev.location) label += ` · ${ev.location}`;
+        d.innerHTML = `
+            <span>${label} &nbsp;·&nbsp; ${new Date(ev.timestamp).toLocaleString()}</span>
+            <div class="event-actions">
+                <button class="edit-btn"   onclick="editBathroom(${ev.id})">Edit</button>
+                <button class="delete-btn" onclick="deleteBathroom(${ev.id})">Delete</button>
+            </div>`;
+        c.appendChild(d);
+    });
+}
+
+function renderDental() {
+    const c = document.getElementById('dentalList');
+    c.innerHTML = '';
+    if (!dentalAll.length) { c.innerHTML='<p class="empty-msg">No dental events yet.</p>'; return; }
+    dentalAll.forEach(ev => {
+        const d = document.createElement('div');
+        d.className = 'event-item';
+        d.innerHTML = `
+            <span>🦷 Brushed${ev.used_flosser ? ' + 💧 Flossed' : ''} &nbsp;·&nbsp; ${new Date(ev.timestamp).toLocaleString()}</span>
+            <div class="event-actions">
+                <button class="edit-btn"   onclick="editDental(${ev.id})">Edit</button>
+                <button class="delete-btn" onclick="deleteDental(${ev.id})">Delete</button>
+            </div>`;
+        c.appendChild(d);
+    });
+}
+
+function renderLoadMore(type, loaded, total) {
+    const c = document.getElementById(`${type}LoadMore`);
+    c.innerHTML = '';
+    if (loaded < total) {
+        const b = document.createElement('button');
+        b.className = 'load-more-btn';
+        b.textContent = `Load more (${loaded} of ${total} shown)`;
+        b.onclick = () => loadMore(type);
+        c.appendChild(b);
+    } else {
+        c.innerHTML = `<p style="text-align:center;color:var(--text-secondary);font-size:13px;padding:10px">All ${total} events shown</p>`;
+    }
+}
+
+function editBathroom(id) { window.location.href=`/?edit_bathroom=${id}`; }
+function editDental(id)   { window.location.href=`/?edit_dental=${id}`; }
+
+async function deleteBathroom(id) {
+    if (!confirm('Delete this event?')) return;
+    await fetch(`/api/bathroom/${id}`, { method:'DELETE' });
+    bathroomAll = bathroomAll.filter(e=>e.id!==id); totalBathroom--;
+    renderBathroom(); renderLoadMore('bathroom', bathroomAll.length, totalBathroom);
+}
+async function deleteDental(id) {
+    if (!confirm('Delete this event?')) return;
+    await fetch(`/api/dental/${id}`, { method:'DELETE' });
+    dentalAll = dentalAll.filter(e=>e.id!==id); totalDental--;
+    renderDental(); renderLoadMore('dental', dentalAll.length, totalDental);
+}
+</script>
+</body>
+</html>
