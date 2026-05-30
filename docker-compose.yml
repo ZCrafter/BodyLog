@@ -1,7 +1,7 @@
 services:
-  life-tracker:
+  bodylog:
     build: .
-    container_name: life-tracker
+    container_name: bodylog
     ports:
       - "5000:5000"   # Main app   → open http://localhost:5000
       - "5003:5000"   # Quick Log  → open http://localhost:5003  (great as a phone shortcut)
