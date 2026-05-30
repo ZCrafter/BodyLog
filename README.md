@@ -331,7 +331,3 @@ A: Your data is in the `data` folder. As long as you keep that folder, your hist
 A: Only for the initial `pip install` step. After that, everything works completely offline.
 
 ---
-
-## 📄 Licence
-
-MIT — free to use, modify, and share.
