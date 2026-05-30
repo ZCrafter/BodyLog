@@ -1,0 +1,12 @@
+services:
+  life-tracker:
+    build: .
+    container_name: life-tracker
+    ports:
+      - "5000:5000"   # Main app   → open http://localhost:5000
+      - "5003:5000"   # Quick Log  → open http://localhost:5003  (great as a phone shortcut)
+    volumes:
+      - ./data:/app/data    # Your data is saved here — back this folder up!
+    environment:
+      - FLASK_ENV=production
+    restart: unless-stopped
