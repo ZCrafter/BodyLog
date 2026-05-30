@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Quick Log — Life Tracker</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="dark-mode">
+<div class="flash-overlay" id="flashOverlay"></div>
+<div class="container">
+    <div class="tabs">
+        <button class="tab" onclick="window.location.href='/'">← Main App</button>
+        <button class="theme-toggle" id="themeToggle" style="margin-left:auto">☀️</button>
+    </div>
+
+    <div class="card" style="text-align:center; padding:24px 20px;">
+        <div class="home-tracker-title" id="htGreeting">Quick Log</div>
+        <div class="home-tracker-time" id="currentTime"></div>
+
+        <div class="home-tracker-container" id="trackerContainer">
+            <div id="leftCol">
+                <button class="home-big-btn home-pee-btn"   id="btnPee"   onclick="logBathroom('pee')"  {% if not config.track_pee %}style="display:none"{% endif %}>💛 Pee</button>
+                <button class="home-big-btn home-poo-btn"   id="btnPoo"   onclick="logBathroom('poo')"  {% if not config.track_poo %}style="display:none"{% endif %}>🟤 Poo</button>
+                <button class="home-big-btn home-brush-btn" id="btnBrush" onclick="startBrush()"        {% if not config.track_brush %}style="display:none"{% endif %}>🦷 Brush Teeth</button>
+            </div>
+            <div id="rightCol">
+                <div class="flosser-panel" id="flosserPanel" {% if not config.track_floss %}data-no-floss="1"{% endif %}>
+                    <label>Also used oral irrigator or floss?</label>
+                    <div class="flosser-options">
+                        <button class="flosser-opt-btn active" id="flosserNo"  onclick="selectFlosserOpt(0)">No</button>
+                        <button class="flosser-opt-btn"        id="flosserYes" onclick="selectFlosserOpt(1)" {% if not config.track_floss %}style="display:none"{% endif %}>Yes 💧</button>
+                    </div>
+                    <button class="submit-btn" style="margin-top:14px" onclick="submitBrush()">Log Brushing ✓</button>
+                    <button class="cancel-btn" style="margin-top:8px"  onclick="cancelBrush()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="last-pressed-note hidden" id="lastPressedNote">Last logged: —</div>
+    </div>
+</div>
+<script>
+const APP_CONFIG = {{ config | tojson }};
+let flosserChoice = 0;
+
+function updateTime() {
+    document.getElementById('currentTime').textContent =
+        new Date().toLocaleString([], { weekday:'short', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+function updateGreeting() {
+    const name = APP_CONFIG.user_name ? `, ${APP_CONFIG.user_name}` : '';
+    const h    = new Date().getHours();
+    const tod  = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+    document.getElementById('htGreeting').textContent = `${tod}${name}!`;
+}
+updateTime(); updateGreeting();
+setInterval(updateTime, 30000);
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    document.getElementById('themeToggle').textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+});
+
+function getNow() {
+    const n = new Date();
+    return new Date(n.getTime() - n.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+}
+
+function flashBtn(id) {
+    const b = document.getElementById(id);
+    if (!b) return;
+    b.classList.add('btn-flash');
+    setTimeout(() => b.classList.remove('btn-flash'), 800);
+}
+
+function updateLastPressed(label) {
+    const n = document.getElementById('lastPressedNote');
+    n.innerHTML = `Last logged: <strong>${label}</strong> at ${new Date().toLocaleString([], { hour:'2-digit', minute:'2-digit', weekday:'short' })}`;
+    n.classList.remove('hidden');
+}
+
+async function logBathroom(type) {
+    const map = { pee:'btnPee', poo:'btnPoo' };
+    const lbl = { pee:'💛 Pee',   poo:'🟤 Poo' };
+    try {
+        const res = await fetch('/api/bathroom', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ event_type:type, timestamp:getNow(), location:'Home' })
+        });
+        if (res.ok) { flashBtn(map[type]); updateLastPressed(lbl[type]); }
+    } catch (e) { alert('Could not save — is the app running?'); }
+}
+
+async function submitBrush() {
+    try {
+        const res = await fetch('/api/dental', {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ timestamp:getNow(), used_flosser:flosserChoice })
+        });
+        if (res.ok) {
+            flashBtn('btnBrush');
+            updateLastPressed('🦷 Brush Teeth' + (flosserChoice ? ' + 💧 Floss' : ''));
+            cancelBrush();
+        }
+    } catch (e) { alert('Could not save — is the app running?'); }
+}
+
+function startBrush() {
+    const panel = document.getElementById('flosserPanel');
+    if (panel.dataset.noFloss === '1') {
+        // Skip the panel; no floss tracking
+        flosserChoice = 0;
+        submitBrush();
+        return;
+    }
+    flosserChoice = 0;
+    document.getElementById('flosserNo').classList.add('active');
+    document.getElementById('flosserYes').classList.remove('active');
+    panel.classList.add('visible');
+}
+function selectFlosserOpt(v) {
+    flosserChoice = v;
+    document.getElementById('flosserNo').classList.toggle('active',  v === 0);
+    document.getElementById('flosserYes').classList.toggle('active', v === 1);
+}
+function cancelBrush() { document.getElementById('flosserPanel').classList.remove('visible'); }
+</script>
+</body>
+</html>
