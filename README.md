@@ -94,8 +94,9 @@ Type each of the following commands, pressing **Enter** after each one:
 python -m venv venv
 ```
 ```
-venv\Scripts\activate
+call venv\Scripts\activate
 ```
+> ⚠️ **Windows users:** use `call` and make sure the slash is a **backslash** (`\`), not a forward slash (`/`). The backslash key is usually above the Enter key on your keyboard.
 
 **Mac:**
 ```
@@ -148,6 +149,56 @@ You should see:
 ```
 
 Open your browser and go to **http://localhost:5000** — you should see the BodyLog welcome screen! 🎉
+
+> ⚠️ **Important — keep the terminal window open.** BodyLog runs inside that black Command Prompt window. If you close it, the app stops and you will not be able to reach it in your browser until you start it again. You can minimise the window — just don't close it.
+
+> 💻 **Using a laptop?** The app only works while your computer is on and awake. If your laptop goes to sleep, BodyLog will stop responding. To prevent this:
+>
+> **Windows:**
+> 1. Click the **Start** menu and open **Settings** (the gear icon)
+> 2. Go to **System → Power & Sleep**
+> 3. Under both "On battery power" and "When plugged in", set **"Put my PC to sleep after"** to **"Never"** (or a long time like 5 hours)
+>
+> **Mac:**
+> 1. Click the **Apple menu** → **System Settings**
+> 2. Go to **Displays** (older Mac) or **Lock Screen** (newer Mac)
+> 3. Set **"Turn display off after"** to **"Never"** or a long duration
+> 4. Also go to **Battery → Options** and enable **"Prevent automatic sleeping when the display is off"**
+>
+> Remember to change these settings back if you are trying to save battery life when not using BodyLog.
+
+> ⚠️ **Keep the terminal window open.** BodyLog only works while that black Command Prompt (or Terminal on Mac) window is running. Minimising it is fine — but if you close it, the app stops and you will not be able to log anything until you start it again.
+
+> 💻 **The computer must stay on and awake.** If your computer goes to sleep, shuts down, or the lid is closed on a laptop, BodyLog will stop responding. Here is how to keep it awake:
+>
+> **Windows — prevent sleep:**
+> 1. Click the **Start** menu and open **Settings**
+> 2. Go to **System → Power & Sleep** (Windows 10) or **System → Power & Battery** (Windows 11)
+> 3. Under the **Sleep** section, set both dropdowns to **"Never"**
+> 4. On a laptop, make sure you set both the "on battery" and "when plugged in" options to **"Never"**
+>
+> **Windows — keep running with the lid closed (laptops only):**
+> 1. In Settings, go to **System → Power & Sleep → Additional power settings**
+> 2. On the left, click **"Choose what closing the lid does"**
+> 3. Change **"When I close the lid"** to **"Do nothing"** (for plugged in, and on battery if you want)
+> 4. Click **Save changes**
+>
+> **Mac — prevent sleep:**
+> 1. Click the Apple menu 🍎 and open **System Settings**
+> 2. Search for **"Lock Screen"** or go to **Displays → Advanced**
+> 3. Set **"Turn display off after"** to **Never**
+> 4. On a laptop, go to **Battery → Options** and enable **"Prevent automatic sleeping on power adapter when the display is off"**
+>
+> **Mac — keep running with the lid closed (laptops only):**
+> The free app **Amphetamine** (available on the Mac App Store — search "Amphetamine") lets you keep your Mac awake with the lid closed. It is safe, free, and widely used.
+
+> ⚠️ **Keep the terminal window open while using BodyLog.** The app runs inside it — if you close it, the app stops and you won't be able to log anything until you start it again. You can minimise the window, but don't close it.
+
+> 💻 **Laptop users — keep your computer awake.** If your laptop goes to sleep or the lid is closed, the app will stop responding. To prevent this:
+>
+> **Windows:** Go to **Start → Settings → System → Power & Sleep**. Under both "Screen" and "Sleep", set the dropdowns to **"Never"** (or at least a long time like 4–5 hours). You can change them back to normal when you are done using BodyLog for the day.
+>
+> **Mac:** Go to **System Settings → Battery** (or **Energy Saver** on older Macs). Set **"Turn display off after"** to **Never**, and enable **"Prevent your Mac from automatically sleeping"**. Macs also tend to stay awake longer when the charger is plugged in.
 
 ---
 
@@ -255,7 +306,7 @@ Repeat this weekly or monthly depending on how important your history is to you.
 **To start BodyLog:**
 1. Open a terminal in the `BodyLog-main` folder
 2. Activate the virtual environment:
-   - Windows: `venv\Scripts\activate`
+   - Windows: `call venv\Scripts\activate`
    - Mac: `source venv/bin/activate`
 3. Start the app: `python app.py`
 4. Leave the terminal window open while you use the app
@@ -331,3 +382,11 @@ A: Your data is in the `data` folder. As long as you keep that folder, your hist
 A: Only for the initial `pip install` step. After that, everything works completely offline.
 
 ---
+
+## 📄 Licence
+
+This project is licensed under the **GNU General Public License v3.0 (GPL-3.0)**.
+
+You are free to use, modify, and share this software. If you distribute a modified version, you must also make your source code available under the same GPL-3.0 licence.
+
+Full licence text: https://www.gnu.org/licenses/gpl-3.0.html
